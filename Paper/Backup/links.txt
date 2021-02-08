@@ -1,0 +1,5 @@
+https://cs.paperswithcode.com/paper/large-scale-and-fine-grained-evaluation-of#code
+https://paperswithcode.com/paper/detection-of-copy-move-forgery-in-digital
+
+
+https://github.com/basilevh/dissecting-image-crops python op basis van chromatic aberration
