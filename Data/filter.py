@@ -23,7 +23,7 @@ def move(filename, name):
     try:
         os.rename(filename, sdir+"\\"+name)    
     except FileExistsError:
-        outName = sdir+"\\"+name+str(random.randint(0,100))
+        outName = sdir+"\\"+str(random.randint(0,100)+name)
         os.rename(filename, outName)
         print("Changed Image Name of: " + outName)
 
