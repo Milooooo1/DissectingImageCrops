@@ -3,30 +3,32 @@ import numpy as np
 import random
 import os
 from keras.preprocessing.image import load_img, img_to_array, array_to_img
+from keras.models import Model
+from keras.layers import Input
+from keras.utils import plot_model
 from manipulations import _extract_random_crop_edge
 from model import Gclass, Fpatch, Fglobal
 
-
+'''Defining the Individual Models'''
 Fglobal = Fglobal()
+Fpatch = Fpatch()
+Gmodel = Gclass()
 
-Fpatch_0  = Fpatch()
-Fpatch_1  = Fpatch()
-Fpatch_2  = Fpatch()
-Fpatch_3  = Fpatch()
-Fpatch_4  = Fpatch()
-Fpatch_5  = Fpatch()
-Fpatch_6  = Fpatch()
-Fpatch_7  = Fpatch()
-Fpatch_8  = Fpatch()
-Fpatch_9  = Fpatch()
-Fpatch_10 = Fpatch()
-Fpatch_11 = Fpatch()
-Fpatch_12 = Fpatch()
-Fpatch_13 = Fpatch()
-Fpatch_14 = Fpatch()
-Fpatch_15 = Fpatch()
+'''Stitching the models together'''
+input_layer = Input(shape=(224, 149, 3), name="global_input")
+x = Fglobal(input_layer)
+# x = Fpatch(x)
+output_layer = Gmodel(x)
 
-Gmodel = Gclass(inputs=Fglobal.outputs) #Concatenate all outputs https://stackoverflow.com/questions/45979848/merge-2-sequential-models-in-keras
+EindBeest = Model(inputs=input_layer, outputs=output_layer, name="EindBeest")
+EindBeest.summary()
+
+EindBeest.compile(optimizer="adam")
+
+'''Making the Models visible'''
+plot_model(Fglobal, to_file="C:\VISION\Dissecting Image Crops\Code\ResNet34_model.png", show_shapes=True)
+plot_model(Gmodel, to_file="C:\VISION\Dissecting Image Crops\Code\Perceptral_model.png", show_shapes=True)
+plot_model(EindBeest, to_file="C:\VISION\Dissecting Image Crops\Code\Merged_model.png", show_shapes=True)
 
 train_dir = r'F:\flickr-scrape\images\sorted\train' 
 test_dir  = r'F:\flickr-scrape\images\sorted\test'
@@ -45,38 +47,42 @@ for i in range(BATCH_SIZE, len(filenames), BATCH_SIZE):
             'patch_loc'    = [0..3]^2                                         | Probability Distribution describing the estimated locations
         }
     '''
-    print("Training model with batch number: " + str(i/BATCH_SIZE) )
+    
     
     input_data = []
-    
+    print("Loading Images")
     for file in filenames[i-BATCH_SIZE:i]:
-        img = load_img(train_dir+'\\'+file)
         data = dict()
-        data['ground_truth'] = img.shape
+        
+        img = load_img(train_dir+'\\'+file)
         
         if(random.randint(0,1) == 1):
-            '''Crop the image and resize it with a width between 1024 2048'''
-            img = img_to_array(img)
+            '''Crop the image'''
+            img = img_to_array(img)    
             crop, bounds, bounds_px1, size_factor = _extract_random_crop_edge(img, 0.5, 0.9, None, False)
+            data['thumbnail'] = crop
+            img = crop
             
-            crop = array_to_img(crop)
-            width = random.randint(1024,2048)
-            crop.resize((width, int(width/1.5)))
-            img = img_to_array(crop)
-            
-            data['thumbnail'] = img_to_array(crop.resize((224, 149)))
         else: 
             '''Keep the normal resolution'''
-            data['thumbnail'] = img_to_array(img.resize((224, 149)))
+            img = img_to_array(img.resize((224, 149)))
+            data['thumbnail'] = img
+
+        data['ground_truth'] = img.shape
         
-        #TODO : Divide this crop (or not) in 16 patches 8+- jitter to it
+        #TODO : Divide the remaining image in 16 patches with a 8+- jitter to it
     
+        input_data.append(data)
     
+    print("Training model with batch number: " + str(i/BATCH_SIZE) + " of " +str(int(len(filenames) / 64)) + " batches." )
     #TODO: Train Fglobal and Fpatch and pipe outputs into Gmodel
-    
-    input_data = np.array(input_data)
-    print(type(input_data))
-    print(len(input_data))
+    thumbnails    = np.array([d['thumbnail']    for d in input_data])
+    ground_truths = np.array([d['ground_truth'] for d in input_data])
+
+    EindBeest.fit(thumbnails, ground_truths)
+    # print(type(input_data))
+    # print(len(input_data))
+    # print(input_data[0])
     
     
     
