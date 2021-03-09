@@ -26,7 +26,8 @@ def Dissecting_image_crops_loss(y_actual, y_predicted):
     '''Patch Loss'''
     # LossPatch =
 
-    totalLoss = (LossClass + LossRect)
+    totalLoss = ( (0.75 * LossClass) + (1 * LossRect))
+    # 1.4 (Patch), 0.75(Rect) and 1(Class) are the weights assigned to each loss
     
     return totalLoss
     
