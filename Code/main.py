@@ -3,14 +3,14 @@ import numpy as np
 import random
 import os
 import cv2
-from keras.preprocessing.image import load_img, img_to_array, array_to_img
+from keras.preprocessing.image import load_img, img_to_array
 from keras.models import Model, load_model
 from keras.layers import Input
 from keras.utils import plot_model
 from manipulations import _extract_random_crop_edge
 from model import Gclass, Fpatch, Fglobal, Dissecting_image_crops_loss
 
-resume = False
+resume = True #Set this to false if you do not want the trained model. 
 
 if not resume:
     '''Defining the Individual Models'''
@@ -30,7 +30,7 @@ if not resume:
     EindBeest.compile(optimizer="adam", loss=Dissecting_image_crops_loss)#, metrics="Accuracy")
 
 else:
-    EindBeest = load_model(r'C:\VISION\Dissecting Image Crops\Model')
+    EindBeest = load_model(r'C:\VISION\Dissecting Image Crops\Model', custom_objects={'Dissecting_image_crops_loss' : Dissecting_image_crops_loss})
 
 
 '''Making the Models visible'''
@@ -57,6 +57,7 @@ for i in range(BATCH_SIZE, len(filenames), BATCH_SIZE):
     '''
     
     input_data = []
+    print()
     print("Loading Images")
     for file in filenames[i-BATCH_SIZE:i]:
         data = dict()
@@ -86,8 +87,8 @@ for i in range(BATCH_SIZE, len(filenames), BATCH_SIZE):
     ground_truths = np.asarray([d['ground_truth'] for d in input_data], dtype='object').astype(np.float32)
     
     EindBeest.fit(thumbnails, ground_truths)
-    
-    
+
+
 EindBeest.save(r'C:\VISION\Dissecting Image Crops\Model')
     
     
@@ -100,9 +101,7 @@ EindBeest.save(r'C:\VISION\Dissecting Image Crops\Model')
     
     
 '''
-#TODO:     
-    Loss functie voor Fpatch en Frect
-    
+#TODO:         
     Kijk hoe je patches met shared weight kan laten trainen. 
     
     Zoek optimalisatie uit met GPU
