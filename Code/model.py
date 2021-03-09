@@ -1,8 +1,35 @@
 from tensorflow.keras.layers import Conv2D, Dense, MaxPooling2D, GlobalAveragePooling2D, Input
-from keras.models import Model, Sequential
+from keras.models import Model
+import tensorflow as tf
+import numpy as np
 
 def Dissecting_image_crops_loss(y_actual, y_predicted):
-    pass
+    '''
+    This function calculates the loss for each part of the model
+    and returns all of it. 
+    
+    LClass = Binary Cross Entropy: https://towardsdatascience.com/understanding-binary-cross-entropy-log-loss-a-visual-explanation-a3ac6025181a , https://keras.io/api/losses/probabilistic_losses/#binarycrossentropy-class
+    LRect  = Mean Squared Error:   https://keras.io/api/losses/regression_losses/#mean_squared_error-function
+    '''
+    
+    '''Crop Loss'''
+    c_actual = y_actual[len(y_actual)-1]
+    c_predicted = y_predicted[len(y_predicted)-1]
+    bce       = tf.keras.losses.BinaryCrossentropy()
+    LossClass = bce(c_actual, c_predicted)
+    
+    
+    '''Thumbnail Loss'''
+    mse         = tf.keras.losses.MeanSquaredError()
+    LossRect    = mse(y_actual[:len(y_actual)-1], y_predicted[:len(y_predicted)-1])
+    
+    '''Patch Loss'''
+    # LossPatch =
+
+    totalLoss = (LossClass + LossRect)
+    
+    return totalLoss
+    
 
 '''
 https://keras.io/guides/functional_api/#manipulate-complex-graph-topologies

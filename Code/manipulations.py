@@ -46,7 +46,7 @@ def _extract_crop_edge(image, size_factor, imposed_crop_rectangle, multiple_8pxl
         y1 = y1_pxl / height
         y2 = y2_pxl / height
 
-    return image[y1_pxl:y2_pxl, x1_pxl:x2_pxl], (x1, x2, y1, y2), (x1_pxl, x2_pxl, y1_pxl, y2_pxl)
+    return image[y1_pxl:y2_pxl, x1_pxl:x2_pxl], [x1, x2, y1, y2], (x1_pxl, x2_pxl, y1_pxl, y2_pxl)
 
 
 def _extract_random_crop_edge(image, min_factor, max_factor, imposed_crop_rectangle, multiple_8pxl):
