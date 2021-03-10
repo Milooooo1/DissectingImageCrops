@@ -6,6 +6,37 @@ Created on Mon Mar  8 10:53:25 2021
 """
 import numpy as np
 
+def _extract_patches(image, patch_size=96):
+    '''
+    Gets 16 patches from the center of each cell of a 4x4 grid
+    '''
+    cell_size = (int(image.shape[0]/4), int(image.shape[1]/4))
+
+    patches = []
+    labels  = []
+    n = 0
+    for i in range(0,4):
+        start_x = (cell_size[1] / 2) - (patch_size / 2)
+        end_x   = start_x + patch_size
+        
+        #Go to next cell on X axis
+        start_x += (i * cell_size[0]) 
+        end_x   += (i * cell_size[0]) 
+        for j in range(0, 4):    
+            start_y = (cell_size[0] / 2) - (patch_size / 2)
+            end_y   = start_y + patch_size
+   
+            #Go to next cell on Y axis
+            start_y += (j * cell_size[1])
+            end_y   += (j * cell_size[1])
+            
+            patches.append(image[int(start_x):int(end_x), int(start_y):int(end_y)])
+            labels.append(n)
+            n+=1
+        
+    return patches, labels
+    
+
 def _extract_crop_edge(image, size_factor, imposed_crop_rectangle, multiple_8pxl):
     '''
     Crops an image with a size factor, it always sticks to an edge.
