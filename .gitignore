@@ -127,3 +127,14 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#Data Folder Items
+Data/train/
+Data/test/
+Data/val/
+Data/API Key.txt
+Data/manipulations.py
+Data/test.py
+
+#Word Documents
+*.docx
