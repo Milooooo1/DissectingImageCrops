@@ -3,6 +3,12 @@ from keras.models import Model
 import tensorflow as tf
 import numpy as np
 
+def ExpScheduler(epoch, lr):
+    if epoch < 25:
+        return lr
+    else:
+        return lr * tf.math.exp(-0.1)
+
 def Dissecting_image_crops_loss(y_actual, y_predicted):
     '''
     This function calculates the loss for each part of the model
@@ -24,18 +30,15 @@ def Dissecting_image_crops_loss(y_actual, y_predicted):
     LossRect    = mse(y_actual[:len(y_actual)-1], y_predicted[:len(y_predicted)-1])
     
     '''Patch Loss'''
-    # LossPatch =
+    # ce = tf.keras.losses.CategoricalCrossentropy()
+    # LossPatch = 0
+    # for i in range(0,16):
+    #     LossPatch += ce(y_actual[i+6], y_predicted[i+6])   
 
-    totalLoss = ( (0.75 * LossClass) + (1 * LossRect))
-    # 1.4 (Patch), 0.75(Rect) and 1(Class) are the weights assigned to each loss
+    totalLoss = ( (0.75 * LossClass) + (1 * LossRect)) #+ (0.0625 * LossPatch)
+    # 1.4 (Patch), 0.75(Rect) and 1/16 or 0.0625(Class) are the weights assigned to each loss
     
     return totalLoss
-    
-
-'''
-https://keras.io/guides/functional_api/#manipulate-complex-graph-topologies
-https://keras.io/guides/functional_api/#all-models-are-callable-just-like-layers
-'''
 
 
 def Fpatch():
@@ -46,7 +49,7 @@ def Fpatch():
     length-16 probability distribution describing the estimated
     location (^ik, ^jk) = {0...3}^2 of that patch.
     '''
-    patch_size = (64,64,3)
+    patch_size = (96,96,3)
         
     input_layer = Input(shape=patch_size, name="ResNet18_Input")
     x = Conv2D(64, (7, 7), strides=2,  padding='same', name="ResNet18_conv0")(input_layer)
@@ -78,9 +81,9 @@ def Fpatch():
     
     x = Dense(64, activation='softmax', name="ResNet18_Dense1")(x)
     
-    output_layer = Dense(16, activation='softmax', name="ResNet18_Output")(x) #16 outputs for location of patch
+    output_layer = Dense(16, activation='relu', name="ResNet18_Dense2")(x)
     
-    fpatch = Model(inputs=input_layer, outputs=output_layer)
+    fpatch = Model(inputs=input_layer, outputs=output_layer, name="ResNet18_Model")
     
     return fpatch
     
@@ -132,15 +135,13 @@ def Fglobal():
     
     x = GlobalAveragePooling2D(name="ResNet34_GlobalAvgPooling")(x)
     
-    x = Dense(1000, activation='softmax', name="ResNet34_Dense")(x)
+    x = Dense(1000, activation='relu', name="ResNet34_Dense")(x)
     
-    output_layer = Dense(64, activation='softmax', name="ResNet34_Output")(x)
+    output_layer = Dense(64, activation='relu', name="ResNet34_Output")(x)
     
     fglobal = Model(inputs=input_layer, outputs=output_layer, name="ResNet34_Model")
     
     return fglobal
-
-    # return output_layer
 
 def Gclass():
     '''
@@ -150,10 +151,10 @@ def Gclass():
     the actual probability ^c that the input image had been cropped. 
     '''
     
-    input_layer = Input(shape=64, name="Perceptral_Input")
-    x = Dense(512, activation='sigmoid', name="Perceptral_Dense1")(input_layer)
-    x = Dense(265, activation='sigmoid', name="Perceptral_Dense2")(x)
-    output_layer = Dense(5, activation='sigmoid', name="Perceptral_Output")(x)
+    input_layer = Input(shape=64, name="Perceptral_Input") #Change to 1088 when using Fpatch
+    x = Dense(512, activation='relu', name="Perceptral_Dense1")(input_layer)
+    x = Dense(265, activation='relu', name="Perceptral_Dense2")(x)
+    output_layer = Dense(5, activation='relu', name="Perceptral_Output")(x)
 
     gclass = Model(inputs=input_layer, outputs=output_layer, name="Perceptral_Model")    
     return gclass
