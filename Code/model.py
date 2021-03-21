@@ -77,9 +77,9 @@ def Fpatch():
     
     x = GlobalAveragePooling2D(name="ResNet18_GlobalAvgPooling")(x)
     
-    x = Dense(1000, activation='softmax', name="ResNet18_Dense0")(x)
+    x = Dense(1000, activation='relu', name="ResNet18_Dense0")(x)
     
-    x = Dense(64, activation='softmax', name="ResNet18_Dense1")(x)
+    x = Dense(64, activation='relu', name="ResNet18_Dense1")(x)
     
     output_layer = Dense(16, activation='relu', name="ResNet18_Dense2")(x)
     
