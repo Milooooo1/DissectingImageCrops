@@ -5,15 +5,21 @@ Created on Mon Mar  8 10:53:25 2021
 @author: Milo
 """
 import numpy as np
+import cv2
 
-def _extract_patches(image, patch_size=96):
+def _extract_patches(image, patch_size=96, padding=(224, 149)):
     '''
     Gets 16 patches from the center of each cell of a 4x4 grid
+    The commented code is for adding padding to the image. 
     '''
     cell_size = (int(image.shape[0]/4), int(image.shape[1]/4))
 
+    # result_size = (padding[0], padding[1], 3)
+    # res = np.zeros(result_size)
+
     patches = []
-    labels  = []
+    labels  = np.zeros(shape=(16,16)) #TODO: FIX LABELS AS
+    # labels = []
     n = 0
     for i in range(0,4):
         start_x = (cell_size[1] / 2) - (patch_size / 2)
@@ -30,10 +36,19 @@ def _extract_patches(image, patch_size=96):
             start_y += (j * cell_size[1])
             end_y   += (j * cell_size[1])
             
-            patches.append(image[int(start_x):int(end_x), int(start_y):int(end_y)])
-            labels.append(n)
+            #Pad patch to size.
+            patch = image[int(start_x):int(end_x), int(start_y):int(end_y)] 
+            # res[:patch.shape[0], :patch.shape[1]] = patch
+            # patches.append(res)
+            patches.append(patch)
+            
+            location = np.zeros(16)
+            location[n] = 1
+            labels[n] = location
             n+=1
         
+    patches = np.asarray(patches)
+    # labels = np.asarray(labels)
     return patches, labels
     
 
@@ -89,9 +104,3 @@ def _extract_random_crop_edge(image, min_factor, max_factor, imposed_crop_rectan
     crop, bounds, bounds_pxl = _extract_crop_edge(
         image, size_factor, imposed_crop_rectangle, multiple_8pxl)
     return crop, bounds, bounds_pxl, size_factor
-
-def _apply_red_transverse_outward_abberation():
-    pass
-
-def _apply_blue_transverse_outward_abberation():
-    pass
